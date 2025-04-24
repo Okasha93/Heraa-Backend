@@ -1,8 +1,9 @@
-const router = require('express').Router();
-const auth = require('../middleware/authMiddleware');
-const { createService, listServices } = require('../controllers/serviceController');
+const express = require('express');
+const { createService, getServices, deleteService } = require('../controllers/serviceController');
+const authMiddleware = require('../middleware/authMiddleware');
+const router = express.Router();
 
-router.post('/', auth, createService);
-router.get('/', auth, listServices);
+router.route('/').get(getServices).post(createService);
+router.delete('/:id', authMiddleware, deleteService);
 
 module.exports = router;

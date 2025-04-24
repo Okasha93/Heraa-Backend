@@ -1,12 +1,20 @@
 const Service = require('../models/Service');
 
 exports.createService = async (req, res) => {
-    const service = new Service(req.body);
-    await service.save();
-    res.status(201).json(service);
+    const service = await Service.create(req.body);
+    res.json(service);
 };
 
-exports.listServices = async (req, res) => {
+exports.getServices = async (req, res) => {
     const services = await Service.find();
     res.json(services);
+};
+
+exports.deleteService = async (req, res) => {
+    try {
+        await Service.findByIdAndDelete(req.params.id);
+        res.json({ message: 'Service deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
 };
