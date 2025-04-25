@@ -13,23 +13,70 @@ exports.getReservations = async (req, res) => {
     res.json(reservations);
 };
 
+// exports.updateReservationStatus = async (req, res) => {
+//     try {
+//         const reservationId = req.params.id;
+//         const { status } = req.body;
+//         if (!status) {
+//             return res.status(400).json({ message: '`status` is required in the body.' });
+//         }
+
+//         const updated = await Reservation.findByIdAndUpdate(
+//             reservationId,
+//             { status },
+//             { new: true }
+//         ).populate('service');
+
+//         res.json(updated);
+//     } catch (error) {
+//         console.error('Error updating reservation status:', error);
+//         res.status(500).json({ message: 'Server error.' });
+//     }
+// };
+
+
 exports.updateReservationStatus = async (req, res) => {
     try {
-        const reservationId = req.params.id;
+        // 1) Admin check (assumes authMiddleware set req.user.role)
+        // if (req.user.role !== 'admin') {
+        //     return res
+        //         .status(403)
+        //         .json({ message: 'Forbidden: admins only can update status.' });
+        // }
+
+        const { id } = req.params;
         const { status } = req.body;
-        if (!status) {
-            return res.status(400).json({ message: '`status` is required in the body.' });
+
+        // 2) Validate status
+        const allowed = ['pending', 'confirmed', 'completed', 'cancelled'];
+        if (!status || !allowed.includes(status)) {
+            return res.status(400).json({
+                message: `Invalid or missing status. Must be one of: ${allowed.join(', ')}`
+            });
         }
 
+        // 3) Perform the update
         const updated = await Reservation.findByIdAndUpdate(
-            reservationId,
+            id,
             { status },
-            { new: true }
-        ).populate('service');
+            { new: true, runValidators: true }
+        )
+            // 4) Populate both subdocs
+            .populate('user', 'name phoneNumber apartment -_id')
+            .populate('service', 'name price -_id');
 
-        res.json(updated);
-    } catch (error) {
-        console.error('Error updating reservation status:', error);
+        if (!updated) {
+            return res.status(404).json({ message: 'Reservation not found.' });
+        }
+
+        // 5) Return the updated reservation
+        res.json({
+            status: 'success',
+            data: updated
+        });
+
+    } catch (err) {
+        console.error('Error updating reservation status:', err);
         res.status(500).json({ message: 'Server error.' });
     }
 };
