@@ -34,15 +34,20 @@ exports.updateReservationStatus = async (req, res) => {
     }
 };
 
-// —— List any user’s reservations (admin only) ——
-exports.getUserReservations = async (req, res, next) => {
+// —— List all user’s reservations (admin only) ——
+exports.getAllReservations = async (req, res, next) => {
     try {
-        const { userId } = req.params;
-        const reservations = await Reservation
-            .find({ user: userId })
-            .populate('service', 'name description price')
-            .populate('user', 'name phoneNumber apartment');
-        res.status(200).json({ status: 'success', results: reservations.length, data: reservations });
+        // pull every reservation, populate user and service subdocs
+        const reservations = await Reservation.find()
+            .populate('user', 'name phoneNumber apartment -_id')
+            .populate('service', 'name price -_id')
+            .select('-_id date time description status'); // drop _id and __v on main doc
+
+        res.status(200).json({
+            status: 'success',
+            results: reservations.length,
+            data: reservations
+        });
     } catch (err) {
         next(err);
     }
