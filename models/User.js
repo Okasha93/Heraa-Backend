@@ -5,7 +5,12 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true },
     apartment: { type: String, required: true },
     name: { type: String, required: true },
-    profileImage: { type: String, default: '' }
+    profileImage: { type: String, default: '' },
+    role: {
+        type: String,
+        enum: ['user', 'admin'],
+        default: 'user'
+    }
 });
 
 module.exports = mongoose.model('User', userSchema);
