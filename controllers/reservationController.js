@@ -86,9 +86,10 @@ exports.getAllReservations = async (req, res, next) => {
     try {
         // pull every reservation, populate user and service subdocs
         const reservations = await Reservation.find()
-            .populate('user', 'name phoneNumber apartment -_id')
-            .populate('service', 'name price -_id')
-            .select('-_id date time description status'); // drop _id and __v on main doc
+        // keep the Reservation’s _id
+        .select('-__v')                       // drop only mongoose’s __v
+        .populate('user',    'name phoneNumber apartment')  // let user._id through
+        .populate('service', 'name price');                // let service._id through
 
         res.status(200).json({
             status: 'success',

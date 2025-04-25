@@ -6,6 +6,6 @@ const router = express.Router();
 router.use(authMiddleware);
 router.route('/all').get(getAllReservations);
 router.route('/').get(getReservations).post(createReservation);
-router.put('/:id/status', updateReservationStatus);
+router.patch('/:id/status', updateReservationStatus);
 
 module.exports = router;
