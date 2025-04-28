@@ -86,10 +86,33 @@ exports.getAllReservations = async (req, res, next) => {
     try {
         // pull every reservation, populate user and service subdocs
         const reservations = await Reservation.find()
-        // keep the Reservation’s _id
-        .select('-__v')                       // drop only mongoose’s __v
-        .populate('user',    'name phoneNumber apartment')  // let user._id through
-        .populate('service', 'name price');                // let service._id through
+            // keep the Reservation’s _id
+            .select('-__v')                       // drop only mongoose’s __v
+            .populate('user', 'name phoneNumber apartment')  // let user._id through
+            .populate('service', 'name price');                // let service._id through
+
+        res.status(200).json({
+            status: 'success',
+            results: reservations.length,
+            data: reservations
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// —— Get all reservations for a specific user (admin only) ——
+exports.getReservationsByUser = async (req, res, next) => {
+    try {
+        const { userId } = req.params;
+        // make sure userId is provided
+        if (!userId) {
+            return res.status(400).json({ message: '`userId` is required in the URL.' });
+        }
+        const reservations = await Reservation.find({ user: userId })
+            .select('-__v')                                // drop only __v
+            .populate('user', 'name phoneNumber apartment')
+            .populate('service', 'name price');
 
         res.status(200).json({
             status: 'success',
